@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="atePassoDois" >
-        <label for="assetsFieldHandle" style="display: flex; align-items: center; justify-content: center; background: #AF3437; cursor: pointer; width: 100%; height: 40px; border-radius:10px; margin: 20px 0px 10px;"><p style="font-size: 16px; margin: 0px; color: rgb(255, 255, 255);font-weight:600;"> <img src="../assets/dowload.svg" style="margin-right: 6px;">Clique aqui para selecionar os arquivos .XML ou .ZIP</p></label>
-        <input type="file" multiple name="fields[assetsFieldHandle][]" id="assetsFieldHandle" style="display: none;" class="w-px h-px opacity-0 overflow-hidden absolute" @change="onChange" ref="file" accept=".zip,.xml" />
+        <label for="assetsFieldHandle" style="display: flex; align-items: center; justify-content: center; background: #AF3437; cursor: pointer; width: 100%; height: 40px; border-radius:10px; margin: 20px 0px 10px;"><p style="font-size: 16px; margin: 0px; color: rgb(255, 255, 255);font-weight:600;"> <img src="https://www.lefisc.com.br/gerador_danfe/dowload.svg" style="margin-right: 6px;">Clique aqui para selecionar os arquivos .XML</p></label>
+        <input type="file" multiple name="fields[assetsFieldHandle][]" id="assetsFieldHandle" style="display: none;" class="w-px h-px opacity-0 overflow-hidden absolute" @change="onChange" ref="file" accept=".xml" />
         <div class="flex w-full h-screen items-center justify-center text-center">
        
         
@@ -11,7 +11,7 @@
             <progress class="pure-material-progress-linear" :style="{'width':'100%', 'position': 'absolute', 'top': spiner ? '35px': '-35px','z-index':'2'}"/>
             <label for="assetsFieldHandle" class="block cursor-pointer" style=" width: 100%;height: 100%;" v-if="filelist.length ==0">
                 <div style="color: #AF3437; background: #fff;cursor: pointer;font-size: 16px;font-weight: 400;width: 100%;display: flex;height: 100%;align-items: center; justify-content: center;" >
-                    <span style="padding:60px;" >Se preferir, arraste aqui os seus arquivos .XML e .ZIP  </span>            
+                    <span style="padding:60px;" >Se preferir, arraste aqui os seus arquivos .XML </span>            
                 </div>
             </label>          
             <ul  v-cloak  class="ulDentro" >
@@ -24,72 +24,108 @@
         </div>
     </div>
     <div style="display: flex; justify-content: center; margin-top: 15px;">
-     <button @click="irParaPaginaConcluido" style="cursor: pointer; border: none; color: #FFFFFF; margin-top: 20px; width: 203px;height: 34px;left: 258px;top: 726px;background: #AF3437; border-radius: 5px;"> Finalizar Importação
-         </button>  
+      <button
+      @click="irParaPaginaConcluido"
+      :disabled="isButtonClicked"
+      style="cursor: pointer; border: none; color: #FFFFFF; margin-top: 20px; width: 203px;height: 34px;left: 258px;top: 726px;background: #AF3437; border-radius: 5px;"
+    >
+      <span v-if="!spinner">
+        Finalizar Importação
+      </span>
+      <img
+        v-if="spinner"
+        src="https://www.lefisc.com.br/gerador_danfe/spiner_true.svg"
+        alt="Spinner"
+        style="vertical-align: middle; margin-right: 6px;"
+      />
+    </button>
         <p v-if="txtValidacao" style="margin-top: 25px; margin-left: 8px; color:red">{{txtValidacao}}</p>
   </div>
 </div>
 </template>
 
 <script>
-import {  mapMutations } from 'vuex';
+import axios from 'axios';
+import { saveAs } from 'file-saver';
+
 export default {
-data(){
-  return{
-    filelist : [],
-    spiner : false,
-    scrolB : false,
-    respostaOp : false,
-    txtValidacao:''
-  }
-},
-methods : {
-    ...mapMutations(['setFile','setPasso']),
-    irParaPaginaConcluido(){
-        this.txtValidacao= ''
-        if(this.filelist.length == 0){//verifica se tem arquivo
-            this.txtValidacao = 'Faça a importação do seu XML ou .ZIP'//exibi mensagem de erro
-        }else{
-            this.setPasso(3)
-            this.setFile(this.filelist)
-            this.$router.push({name:'concluido',params:{idEmpresa:this.$route.params.idEmpresa}})
+  data() {
+    return {
+      filelist: [],
+      spinner: false,
+      scrolB: false,
+      respostaOp: false,
+      txtValidacao: '',
+      isButtonClicked: false,
+    };
+  },
+  methods: {
+    async irParaPaginaConcluido() {
+      this.txtValidacao = '';
+
+      if (this.filelist.length === 0) {
+        this.txtValidacao = 'Faça a importação do seu XML';
+      } else if (!this.isButtonClicked) {
+        this.isButtonClicked = true;
+        this.spinner = true;
+
+        let formData = new FormData();
+        formData.append('files', this.filelist[0]);
+        try {
+          const response = await axios.post('https://www.lefisc.com.br/api/danfe', formData, {
+            responseType: 'arraybuffer',
+          });
+
+          const blob = new Blob([response.data], { type: 'application/pdf' });
+          saveAs(blob, this.filelist[0].name.split('.')[0] + '.pdf');
+          this.filelist = [];
+          location.reload();
+        } catch (error) {
+          console.error(error);
+        } finally {
+          this.isButtonClicked = false;
+          this.spinner = false;
         }
+      }
     },
-  dragover(event) {
+    dragover(event) {
       event.preventDefault();
       if (!event.currentTarget.classList.contains('bg-green-300')) {
         event.currentTarget.classList.remove('bg-gray-100');
         event.currentTarget.classList.add('bg-green-300');
       }
     },
-    dragleave(event) { 
+    dragleave(event) {
       event.currentTarget.classList.add('bg-gray-100');
       event.currentTarget.classList.remove('bg-green-300');
     },
     drop(event) {
       event.preventDefault();
       this.$refs.file.files = event.dataTransfer.files;
-      this.onChange(); 
+      this.onChange();
       event.currentTarget.classList.add('bg-gray-100');
       event.currentTarget.classList.remove('bg-green-300');
     },
-  onChange() {    
-    this.txtValidacao = ''
-        console.log(this.$refs.file.files)
-        this.scrolB = true
-        this.filelist = [...this.$refs.file.files];       
-        this.passo = 2   
+    onChange() {
+      this.txtValidacao = '';
+      console.log(this.$refs.file.files);
+      this.scrolB = true;
+      this.filelist = [...this.$refs.file.files];
+      this.passo = 2;
     },
     remove(i) {
       this.filelist.splice(i, 1);
-      if(this.filelist.length ==0){         
-          this.passo = 1;
-          this.scrolB = false
+      if (this.filelist.length == 0) {
+        this.passo = 1;
+        this.scrolB = false;
       }
     },
-}
-}
+  },
+};
 </script>
+
+
+
 
 <style>
 

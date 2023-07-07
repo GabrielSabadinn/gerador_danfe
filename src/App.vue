@@ -6,18 +6,18 @@
       <div style="display: flex; flex-direction: row; max-width: 1260px; margin: 0 auto; justify-content: space-between;">
         <div>
           <div style="display: flex; justify-content: left; margin-top: 50px; margin-bottom: 40px;">
-            <img src="./assets/letreiro.svg" class="imagem-cipa" style="width: 200px">
+            <img src="https://www.lefisc.com.br/gerador_danfe/letreiro.svg" class="imagem-cipa" style="width: 200px">
           </div>
           <div style="font-weight: 400;">
             <p class="paragrafo">
-              <strong style="color: #fff; font-size: 24px;">O Gerador DANFe da LEFISC é uma ferramenta simples que transforma uma NFe de modelo 55 (em .xml ou .zip) em um DANFE, pronto para você imprimir, sem burocracias.</strong>
+              <strong style="color: #fff; font-size: 24px;">O Gerador DANFe da LEFISC é uma ferramenta simples que transforma uma NFe de modelo 55 (em .xml) em um DANFE, pronto para você imprimir, sem burocracias.</strong>
               <br><br>
               O DANFE é utilizado para acompanhar o trânsito da mercadoria. É uma representação gráfica simplificada da Nota Fiscal Eletrônica, em papel comum e em via única.
             </p>
           </div>
         </div>
         <div>
-          <img src="./assets/slaoqehisso.svg" class="imagem-person">
+          <img src="https://www.lefisc.com.br/gerador_danfe/slaoqehisso.svg" class="imagem-person">
         </div>
       </div>
     </div>
